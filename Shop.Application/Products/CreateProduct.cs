@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Shop.Application.Products
+namespace Shop.Application.CreateProducts
 {
     public class CreateProduct
     {
@@ -14,13 +14,6 @@ namespace Shop.Application.Products
         public CreateProduct(ApplicationDbContext context)
         {
             _context = context;
-        }
-
-        public class ProductViewModel
-        {
-            public string Name { get; set; }
-            public string Description { get; set; }
-            public decimal Value { get; set; }
         }
 
         public async Task Do(ProductViewModel vm)
@@ -34,8 +27,12 @@ namespace Shop.Application.Products
              
             await _context.SaveChangesAsync();
         }
+    }
 
-
-
+    public class ProductViewModel
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public decimal Value { get; set; }
     }
 }

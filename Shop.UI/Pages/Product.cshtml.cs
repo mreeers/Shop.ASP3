@@ -22,11 +22,6 @@ namespace Shop.UI.Pages
         [BindProperty]
         public AddToCart.Request CartViewModel { get; set; }
 
-        public class Test
-        {
-            public string Id { get; set; }
-        }
-
         public GetProduct.ProductViewModel Product { get; set; }
 
         public IActionResult OnGet(string name)

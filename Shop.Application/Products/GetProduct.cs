@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Shop.Application.Products
 {
@@ -17,24 +18,42 @@ namespace Shop.Application.Products
 
         }
 
-        public ProductViewModel Do(string name) =>
-        _context.Products
-            .Include(x => x.Stocks)
-            .Where(x => x.Name == name)
-            .Select(x => new ProductViewModel
+        public async Task<ProductViewModel> Do(string name)
+        {
+            var stockOnHold = _context.StocksOnHolds.Where(x => x.ExpiryDate < DateTime.Now).ToList();
+
+            if(stockOnHold.Count > 0)
             {
-                Name = x.Name,
-                Description = x.Description,
-                Value = $"$ {x.Value.ToString("N2")}", //1100.50 => 1,100.50
+                var stockToReturn = _context.Stocks.Where(x => stockOnHold.Any(y => y.StockId == x.Id)).ToList();
+
+                foreach(var stock in stockToReturn)
+                {
+                    stock.Qty = stock.Qty - stockOnHold.FirstOrDefault(x => x.StockId == stock.Id).Qty;
+                }
+
+                _context.StocksOnHolds.RemoveRange(stockOnHold);
+
+                await _context.SaveChangesAsync();
+            }
+
+            return _context.Products
+                .Include(x => x.Stocks)
+                .Where(x => x.Name == name)
+                .Select(x => new ProductViewModel
+                {
+                    Name = x.Name,
+                    Description = x.Description,
+                    Value = $"$ {x.Value.ToString("N2")}", //1100.50 => 1,100.50
 
                 Stock = x.Stocks.Select(y => new StockViewModel
-                {
-                    Id = y.Id,
-                    Description = y.Description,
-                    InStock = y.Qty > 0
+                    {
+                        Id = y.Id,
+                        Description = y.Description,
+                        InStock = y.Qty > 0
+                    })
                 })
-            })
-            .FirstOrDefault();
+                .FirstOrDefault();
+        }
 
         public class ProductViewModel
         {
